@@ -259,7 +259,8 @@ No temperatures:
 
 ## License
 
-MIT License recommended.
+MIT License
+
 
 ---
 
