@@ -104,43 +104,55 @@ You must have `/dev/ipmi0` available.
 ## Installation
 
 1. Install required packages:
+   ```
    apt update
    apt install -y ipmitool lm-sensors
    sensors-detect
+   ```
 
 2. Ensure IPMI device exists:
+   ```
    ls -l /dev/ipmi0
-
+   ```  
    If missing:
+   ```
    modprobe ipmi_si
    modprobe ipmi_devintf
+   ```
 
    Persist modules:
+   ```
    echo ipmi_si > /etc/modules-load.d/ipmi.conf
    echo ipmi_devintf >> /etc/modules-load.d/ipmi.conf
+   ```
 
-3. Copy script to:
+4. Copy script to:
+   ```
    /usr/local/sbin/r710-fancontrol.sh
+   ```
 
-4. Make executable:
+5. Make executable:
+   ```
    chmod +x /usr/local/sbin/r710-fancontrol.sh
-
+   ```
 ---
 
 ## systemd Integration (Recommended)
 
 Service file: /etc/systemd/system/r710-fancontrol.service
 
-[Unit]
+```[Unit]
 Description=R710 Fan Control
 After=network.target
 
 [Service]
 Type=oneshot
 ExecStart=/usr/local/sbin/r710-fancontrol.sh
+```
 
 Timer file: /etc/systemd/system/r710-fancontrol.timer
 
+```
 [Unit]
 Description=Run R710 fan control every 30 seconds
 
@@ -155,26 +167,28 @@ WantedBy=timers.target
 Enable:
 systemctl daemon-reload
 systemctl enable --now r710-fancontrol.timer
-
+```
 ---
 
 ## Configuration
 
 All configuration is done via environment variables.
-
+```
 Defaults:
 CPU_ON=55
 CPU_OFF=50
 AMBIENT_ON=33
 AMBIENT_OFF=30
 FAN_HEX=0x10 (~16%)
-
+```
 Recommended home lab value:
+```
 FAN_HEX=0x0C (~12%)
+```
 
 Override via systemd:
 systemctl edit r710-fancontrol.service
-
+```
 Example:
 [Service]
 Environment=FAN_HEX=0x0C
@@ -182,7 +196,7 @@ Environment=CPU_ON=55
 Environment=CPU_OFF=50
 Environment=AMBIENT_ON=33
 Environment=AMBIENT_OFF=30
-
+```
 Apply:
 systemctl daemon-reload
 systemctl start r710-fancontrol.service
@@ -204,8 +218,9 @@ RPM varies by fan model and airflow.
 ## Logging
 
 Follow logs live:
+```
 journalctl -t r710-fancontrol -f
-
+```
 Log types:
 - STATE CHANGE → AUTO / MANUAL
 - HOURLY STATUS (exactly on HH:00)
@@ -224,9 +239,10 @@ Format:
 Data is automatically pruned to keep only the last 24 hours.
 
 Inspect:
+```
  wc -l /var/lib/r710-fancontrol/stats.csv
  tail -n 5 /var/lib/r710-fancontrol/stats.csv
-
+```
 ---
 
 ## Troubleshooting
@@ -234,9 +250,10 @@ Inspect:
 No logs:
 - Normal if mode did not change and it is not on the hour
 - Force a log:
+```
   rm -f /run/r710-fancontrol.state
   systemctl start r710-fancontrol.service
-
+```
 Fans ramp often:
 - Increase FAN_HEX
 - Lower CPU_ON / AMBIENT_ON
