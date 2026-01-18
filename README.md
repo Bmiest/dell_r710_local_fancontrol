@@ -1,6 +1,6 @@
 # Dell PowerEdge R710 Fan Control (Proxmox / Linux)
 
-Quiet, safe, **local IPMI–based fan control** for the **Dell PowerEdge R710 (iDRAC6)** running **Proxmox VE** or other Debian-based Linux systems.
+Quiet, local IPMI–based fan control for the Dell PowerEdge R710 (iDRAC6) running Proxmox VE or other Debian-based Linux systems.
 
 The Dell R710 is extremely loud in a homelab. Dell’s default fan profile is very conservative and ramps fans aggressively even at low load. This project provides a controlled, transparent, and safe way to reduce noise **without disabling Dell’s built-in hardware protections**.
 
