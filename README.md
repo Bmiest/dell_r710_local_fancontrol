@@ -164,7 +164,9 @@ AccuracySec=1s
 [Install]
 WantedBy=timers.target
 
+```
 Enable:
+```
 systemctl daemon-reload
 systemctl enable --now r710-fancontrol.timer
 ```
