@@ -163,7 +163,16 @@ PREV_MODE="MANUAL"
 # -------------------
 MODE="$PREV_MODE"
 
-if [ "$PREV_MODE" = "MANUAL" ]; then
+# A failed read comes back as 0 (see to_int). Without a temperature we can't
+# judge whether a low fixed speed is safe, so hand control to the iDRAC.
+READINGS_OK=1
+if [ "$CPU_MAX" -le 0 ] || [ "$AMBIENT" -le 0 ]; then
+  READINGS_OK=0
+fi
+
+if [ "$READINGS_OK" -eq 0 ]; then
+  MODE="AUTO"
+elif [ "$PREV_MODE" = "MANUAL" ]; then
   # Switch to AUTO only when crossing ON thresholds
   if [ "$CPU_MAX" -ge "$CPU_ON" ] || [ "$AMBIENT" -ge "$AMBIENT_ON" ]; then
     MODE="AUTO"
@@ -180,7 +189,9 @@ fi
 # -------------------
 if [ "$MODE" != "$PREV_MODE" ]; then
   if [ "$MODE" = "AUTO" ]; then
-    log "STATE CHANGE → AUTO | CPU=${CPU_MAX}C Ambient=${AMBIENT}C | $FAN_RPMS | thresholds: CPU_ON=${CPU_ON} AMBIENT_ON=${AMBIENT_ON}"
+    REASON="thresholds: CPU_ON=${CPU_ON} AMBIENT_ON=${AMBIENT_ON}"
+    [ "$READINGS_OK" -eq 0 ] && REASON="temperature unreadable (0 = no reading)"
+    log "STATE CHANGE → AUTO | CPU=${CPU_MAX}C Ambient=${AMBIENT}C | $FAN_RPMS | ${REASON}"
     apply_auto
   else
     log "STATE CHANGE → MANUAL | CPU=${CPU_MAX}C Ambient=${AMBIENT}C | $FAN_RPMS | Fan=${FAN_HEX} (~${FAN_PCT}%) | thresholds: CPU_OFF=${CPU_OFF} AMBIENT_OFF=${AMBIENT_OFF}"
