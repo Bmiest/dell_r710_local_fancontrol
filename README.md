@@ -15,7 +15,7 @@ This solution:
 ## Features
 
 - Manual fan speed when temperatures are safe (quiet mode)
-- Automatic fallback to Dell AUTO fan mode when temperatures rise
+- Automatic fallback to Dell AUTO fan mode when temperatures rise or can't be read
 - Hysteresis to prevent fan flapping
 - Logs only meaningful events:
   - Fan mode changes (AUTO ↔ MANUAL)
@@ -60,13 +60,21 @@ To avoid rapid switching between modes:
 
 MANUAL → AUTO when:
 - CPU temperature >= CPU_ON OR
-- Ambient temperature >= AMBIENT_ON
+- Ambient temperature >= AMBIENT_ON OR
+- Either temperature can't be read
 
 AUTO → MANUAL when:
+- Both temperatures can be read AND
 - CPU temperature <= CPU_OFF AND
 - Ambient temperature <= AMBIENT_OFF
 
 This prevents oscillation when temperatures hover near thresholds.
+
+A failed read (lm-sensors or IPMI returns nothing, or the sensor reports
+"No Reading") counts as 0°C, and 0 is treated as unreadable. Without a
+temperature the script can't tell whether a low fixed speed is safe, so it
+hands control to the iDRAC. The log shows `temperature unreadable (0 = no reading)`
+as the reason.
 
 ---
 
@@ -273,7 +281,7 @@ Fans ramp often:
 - Lower CPU_ON / AMBIENT_ON
 - Check airflow, dust, and thermal paste
 
-No temperatures:
+No temperatures (script stays in AUTO, `CPU=0C` or `Ambient=0C` in the logs):
 - Run sensors
 - Run ipmitool sdr type temperature
 
@@ -283,6 +291,7 @@ No temperatures:
 
 - Dell hardware protections remain active
 - AUTO mode always overrides manual when needed
+- A missing temperature reading also switches to AUTO
 - Validate temperatures under real load
 - Increase fan speed during hot summer months
 
